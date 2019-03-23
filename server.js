@@ -4,6 +4,7 @@ var express     = require('express');
 var bodyParser  = require('body-parser');
 var expect      = require('chai').expect;
 var cors        = require('cors');
+var helmet      = require('helmet');
 
 var apiRoutes         = require('./routes/api.js');
 var fccTestingRoutes  = require('./routes/fcctesting.js');
@@ -15,7 +16,7 @@ app.use('/public', express.static(process.cwd() + '/public'));
 
 app.use(cors({origin: '*'})); //For FCC testing purposes only
 
-
+app.use(helmet())
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -45,6 +46,12 @@ app.use(function(req, res, next) {
     .send('Not Found');
 });
 
+app.use((error, request, response, next) => {
+  return response.status(error.status || 500).json({
+    error: error.message || 'invalid URL'
+  });
+});
+
 //Start our server and tests!
 app.listen(process.env.PORT || 3000, function () {
   console.log("Listening on port " + process.env.PORT);
@@ -53,10 +60,8 @@ app.listen(process.env.PORT || 3000, function () {
     setTimeout(function () {
       try {
         runner.run();
-      } catch(e) {
-        var error = e;
-          console.log('Tests are not valid:');
-          console.log(error);
+      } catch(err) {
+        console.log('Tests are not valid:', err);
       }
     }, 3500);
   }
