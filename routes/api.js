@@ -51,7 +51,7 @@ module.exports = (app) => {
         res.json(err)
       }
     })
- 
+    
     .post(async (req, res) => {
       try {
         const project = req.params.project;
@@ -71,10 +71,11 @@ module.exports = (app) => {
         if (error) return res.send(error.details[0].message);
 
         const collection = await connect(project);
-        collection.insertOne(issue, (err, doc) => {
-          issue._id = doc.insertedId;
-          res.json(issue);
-        });
+        const insertedIssue = collection.insertOne(issue)
+        if(!insertedIssue) return res.send('sorry could not add issue. try again! thanks')
+        
+        issue._id = insertedIssue.insertedId;
+        res.json(issue);
 
       } catch(err) {
         res.json(err)
